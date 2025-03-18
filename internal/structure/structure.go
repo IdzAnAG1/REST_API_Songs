@@ -2,8 +2,8 @@ package structure
 
 import "time"
 
-type Sound struct {
-	Id          int       `json:"id"`
+type Song struct {
+	Id          int64     `json:"id"`
 	GroupTitle  string    `json:"group_title"`
 	SongTitle   string    `json:"song_title"`
 	ReleaseDate time.Time `json:"release_date"`
