@@ -42,7 +42,7 @@ EXTERNAL_API_URL=http://external-api.com/info
 # Установка
 #### Клонируем
 ```bash
-  git clone https://github.com/<yourusername>/REST_API_Songs.git
+  git clone https://github.com/IdzAnAG1/REST_API_Songs.git
 ```
 
 ---
