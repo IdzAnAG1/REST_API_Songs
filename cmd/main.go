@@ -1,82 +1,43 @@
 package main
 
 import (
+	_ "REST_API_Songs/docs"
 	"REST_API_Songs/internal/config"
 	"REST_API_Songs/internal/db"
+	"REST_API_Songs/internal/handlers"
 	"REST_API_Songs/internal/repository"
-	"REST_API_Songs/internal/structure"
-	"context"
-	"log"
-	"time"
-)
-
-import (
-	"fmt"
+	"REST_API_Songs/internal/service"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	Swag "github.com/swaggo/http-swagger"
+	"net/http"
 )
 
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		fmt.Sprintf("Ай ай")
+		logrus.Fatalf("Failed to load configuration: %v", err)
 	}
-	dab, err := db.NewDataBase(cfg.DataBaseURL)
+	database, err := db.NewDataBase(cfg.DataBaseURL)
 	if err != nil {
-		fmt.Errorf("Провалилось подклюение к БД")
+		logrus.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer dab.CloseDatabase()
-
-	repo := repository.NewRepository(dab)
-
-	song := &structure.Song{
-		GroupTitle:  "Coldplay",
-		SongTitle:   "Yellow",
-		ReleaseDate: time.Date(2000, 7, 26, 0, 0, 0, 0, time.UTC),
-		SongText:    "Look at the stars",
-		Link:        "http://example.com/yellow",
+	defer database.CloseDatabase()
+	repo := repository.NewRepository(database)
+	svc := service.NewService(repo, cfg.ExternalApiURL)
+	h := handlers.NewHandler(svc)
+	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/list", http.StatusMovedPermanently)
+	}).Methods("GET")
+	r.HandleFunc("/list", h.GetSongs).Methods("GET")
+	r.HandleFunc("/song/{id}/text", h.GetSongText).Methods("GET")
+	r.HandleFunc("/song/{id}", h.DeleteSong).Methods("DELETE")
+	r.HandleFunc("/song/{id}", h.UpdateSong).Methods("PUT")
+	r.HandleFunc("/song", h.CreateSong).Methods("POST")
+	r.PathPrefix("/swagger/").Handler(Swag.WrapHandler)
+	logrus.Infof("Service work on http://localhost:%s", cfg.APIPort)
+	if err := http.ListenAndServe(":"+cfg.APIPort, r); err != nil {
+		logrus.Fatalf("Failed to start server: %v", err)
 	}
-	id, err := repo.CreateSong(context.Background(), song)
-	if err != nil {
-		log.Fatalf("Failed to create song: %v", err)
-	}
-	fmt.Printf("Created song with ID: %d\n", id)
-	id1, err1 := repo.CreateSong(context.Background(), song)
-	if err1 != nil {
-		log.Fatalf("Failed to create song: %v", err1)
-	}
-	fmt.Printf("Created song with ID: %d\n", id1)
-
-	filters := map[string]string{
-		"group_title": "Coldplay",
-	}
-	page, limit := 1, 10
-	songs, err := repo.GetSongs(context.Background(), filters, page, limit)
-	if err != nil {
-		log.Fatalf("Failed to fetch songs: %v", err)
-	}
-	fmt.Printf("Retrieved songs: %+v\n", songs)
-
-	songByID, err := repo.GetSongById(context.Background(), id)
-	if err != nil {
-		log.Fatalf("Failed to fetch song by ID: %v", err)
-	}
-	fmt.Printf("Retrieved song by ID: %+v\n", songByID)
-
-	updatedSong := &structure.Song{
-		GroupTitle:  "Coldplay",
-		SongTitle:   "Updated Yellow",
-		ReleaseDate: time.Date(2000, 7, 26, 0, 0, 0, 0, time.UTC),
-		SongText:    "Updated text",
-		Link:        "http://example.com/updated-yellow",
-	}
-	err = repo.UpdateSong(context.Background(), id, updatedSong)
-	if err != nil {
-		log.Fatalf("Failed to update song: %v", err)
-	}
-	fmt.Println("Updated song successfully")
-
-	err = repo.DeleteSong(context.Background(), id)
-	if err != nil {
-		log.Fatalf("Failed to delete song: %v", err)
-	}
-	fmt.Println("Deleted song successfully")
 }

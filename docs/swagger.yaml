@@ -1,0 +1,196 @@
+definitions:
+  structure.NewSong:
+    properties:
+      group_title:
+        type: string
+      song_title:
+        type: string
+    type: object
+  structure.Song:
+    properties:
+      group_title:
+        type: string
+      id:
+        type: integer
+      link:
+        type: string
+      release_date:
+        type: string
+      song_text:
+        type: string
+      song_title:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /song:
+    post:
+      consumes:
+      - application/json
+      description: Добавление новой песни и получение дополнительных сведений из внешнего
+        API
+      parameters:
+      - description: Song input
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/structure.NewSong'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создает новую песню
+      tags:
+      - songs
+  /song/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет песню находя ее по ее уникальному ID
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удаление песни
+      tags:
+      - songs
+    put:
+      consumes:
+      - application/json
+      description: Обнавляет информацию о песни по ее ID
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Song data
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/structure.Song'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structure.Song'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновление информации о песне
+      tags:
+      - songs
+  /song/{id}/text:
+    get:
+      consumes:
+      - application/json
+      description: Получение текста песни с постраничной разбивкой по куплетам
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 2
+        description: Number of verses per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить текст песни с пагинацией по куплетам
+      tags:
+      - songs
+swagger: "2.0"

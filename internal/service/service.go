@@ -81,33 +81,26 @@ func (s *Service) CreateSong(ctx context.Context, in *structure.NewSong) (int64,
 
 func (s *Service) fetchSongDetails(groupTitle, songTitle string) (*structure.SupplementForSong, error) {
 	logrus.Debugf("Fetching details for song: %s by %s from external API", songTitle, groupTitle)
-
 	u, err := url.Parse(s.ExternalApiURL + "/info/")
 	if err != nil {
 		return nil, err
 	}
-
 	q := u.Query()
 	q.Set("group_title", groupTitle)
 	q.Set("song_title", songTitle)
 	u.RawQuery = q.Encode()
-
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("external API returned status: %d", resp.StatusCode)
 	}
-
 	var details structure.SupplementForSong
 	if err := json.NewDecoder(resp.Body).Decode(&details); err != nil {
 		return nil, err
