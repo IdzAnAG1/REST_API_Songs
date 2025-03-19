@@ -1,6 +1,6 @@
 # Online Song Library 
 
----
+
 ## Описание 
 #### Проект представляет собой REST API для онлайн библиотеки песен.
  - Получать список песен с возможностью фильтрации по всем полям и с пагинацией
@@ -44,7 +44,10 @@ EXTERNAL_API_URL=http://external-api.com/info
 ```bash
   git clone https://github.com/IdzAnAG1/REST_API_Songs.git
 ```
-
+#### Переходим в каталог проекта 
+```bash
+   cd REST_API_Songs
+```
 ---
 
 # Запуск
